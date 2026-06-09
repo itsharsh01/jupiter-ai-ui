@@ -1,8 +1,3 @@
-const DETAILS = [  { key: 'APPLICATION', value: 'NEURAL LINK COMPLIANCE NODE' },
-  { key: 'ENVIRONMENT', value: 'PRODUCTION' },
-  { key: 'FRAMEWORK', value: 'FED_GOVERNANCE_v4.2' },
-  { key: 'ONTOLOGY', value: 'LOADED // NEO4J + QDRANT' },
-] as const;
 
 interface TerminalPanelProps {
   onOpenAuditing?: () => void;
@@ -44,22 +39,38 @@ export default function TerminalPanel({ onOpenAuditing }: TerminalPanelProps) {
             automated governance for enterprise scale.
           </p>
         </div>
-        {/* Inline system details — same terminal window, no second title bar */}
-        <div className="border border-outline-variant/40 bg-surface-container-lowest/30 p-4">
-          <div className="text-[10px] text-outline font-code-snippet uppercase tracking-widest mb-3">
-            &gt; system_details
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
-            {DETAILS.map(({ key, value }) => (
-              <div key={key} className="flex flex-col sm:flex-row sm:items-baseline sm:gap-2">
-                <span className="text-[10px] text-outline font-code-snippet uppercase shrink-0">
-                  {key}:
-                </span>
-                <span className="text-[11px] text-primary-fixed font-code-snippet uppercase">
-                  {value}
-                </span>
-              </div>
-            ))}
+        {/* Verification Pipeline: Your System ──▶ Jupiter AI ──▶ Production Ready? */}
+        <div className="border border-outline-variant/30 bg-surface-container-lowest/20 p-5 rounded font-code-snippet">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4">
+            {/* Step 1: Your System */}
+            <div className="w-full md:w-auto md:flex-1 min-w-[140px] border border-outline-variant/50 bg-surface-container-low/30 px-4 py-2.5 rounded text-center">
+              <div className="text-[9px] text-outline uppercase tracking-wider mb-0.5">Target</div>
+              <div className="text-[13px] font-bold text-on-surface uppercase tracking-wide whitespace-nowrap">YOUR SYSTEM</div>
+            </div>
+
+            {/* Connection Arrow */}
+            <div className="text-outline/40 text-sm select-none">
+              <span className="hidden md:inline">──▶</span>
+              <span className="md:hidden">▼</span>
+            </div>
+
+            {/* Step 2: Jupiter AI (Us) */}
+            <div className="w-full md:w-auto md:flex-1 min-w-[140px] border border-primary-fixed/40 bg-primary-fixed/5 px-4 py-2.5 rounded text-center shadow-[0_0_15px_rgba(var(--color-primary),0.02)]">
+              <div className="text-[9px] text-primary-fixed-dim uppercase tracking-wider mb-0.5">Auditor</div>
+              <div className="text-[13px] font-bold text-primary-fixed uppercase tracking-wider whitespace-nowrap">JUPITER AI</div>
+            </div>
+
+            {/* Connection Arrow */}
+            <div className="text-outline/40 text-sm select-none">
+              <span className="hidden md:inline">──▶</span>
+              <span className="md:hidden">▼</span>
+            </div>
+
+            {/* Step 3: Production Status */}
+            <div className="w-full md:w-auto md:flex-1 min-w-[160px] border border-outline-variant/50 bg-surface-container-low/30 px-4 py-2.5 rounded text-center">
+              <div className="text-[9px] text-outline uppercase tracking-wider mb-0.5">Decision</div>
+              <div className="text-[12px] font-bold text-secondary-fixed-dim uppercase tracking-wide whitespace-nowrap">PRODUCTION READY?</div>
+            </div>
           </div>
         </div>
 

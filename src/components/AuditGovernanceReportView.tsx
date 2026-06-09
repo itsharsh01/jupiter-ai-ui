@@ -3,6 +3,7 @@ import {
   fetchGovernanceAuditReport,
   type GovernanceAuditReport,
 } from '../api/audit';
+import JupiterLoader from './JupiterLoader';
 
 const REPORT_TABS = [
   { id: 'tab-1', label: '1. EXECUTIVE SUMMARY' },
@@ -502,9 +503,7 @@ export default function AuditGovernanceReportView({ auditId }: AuditGovernanceRe
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center p-10">
-        <p className="font-code-snippet text-primary-fixed animate-pulse">GENERATING GOVERNANCE REPORT…</p>
-      </div>
+      <JupiterLoader fullscreen text="Generating governance report…" />
     );
   }
 

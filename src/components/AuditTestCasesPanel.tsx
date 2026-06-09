@@ -224,46 +224,89 @@ export default function AuditTestCasesPanel({ sandbox, onSandboxUpdate }: AuditT
   const firstWithCases = STRATEGY_ORDER.find((s) => (casesByStrategy.get(s)?.length ?? 0) > 0);
   const [activeTab, setActiveTab] = useState<TestCaseStrategy>(firstWithCases ?? 'governance');
   const [runningAll, setRunningAll] = useState(false);
+  const [isResuming, setIsResuming] = useState(false);
   const [runProgress, setRunProgress] = useState<{ current: number; total: number } | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
 
-  async function handleRunAll() {
+  const canResume = useMemo(() => {
+    return sandbox.test_cases.some(
+      (c) => c.status !== 'passed' && c.status !== 'failed'
+    );
+  }, [sandbox.test_cases]);
+
+  async function handleRun(resume = false) {
     const cases = sandbox.test_cases;
     if (cases.length === 0) return;
 
+    let startIndex = 0;
+    let onlyPoll = false;
+
+    if (resume) {
+      // Find the first testcase that is not passed, failed, evaluating, or running
+      const firstStoppedIndex = cases.findIndex(
+        (c) =>
+          c.status !== 'passed' &&
+          c.status !== 'failed' &&
+          c.status !== 'evaluating' &&
+          c.status !== 'running'
+      );
+
+      if (firstStoppedIndex !== -1) {
+        startIndex = firstStoppedIndex;
+      } else {
+        // If everything is already evaluating/running but not finished, just poll
+        if (hasPendingEvaluation(cases)) {
+          onlyPoll = true;
+        } else {
+          // All test cases are completely finished
+          return;
+        }
+      }
+    }
+
     setRunningAll(true);
+    setIsResuming(resume);
     setRunError(null);
-    setRunProgress({ current: 0, total: cases.length });
 
     let latestCases = [...sandbox.test_cases];
     let executionFailed = false;
 
-    for (let i = 0; i < cases.length; i++) {
-      const tc = cases[i];
-      setRunProgress({ current: i + 1, total: cases.length });
+    if (!onlyPoll) {
+      setRunProgress({ current: startIndex, total: cases.length });
 
-      latestCases = latestCases.map((c) =>
-        c.test_case_id === tc.test_case_id ? { ...c, status: 'running' as const } : c,
-      );
-      onSandboxUpdate({ ...sandbox, test_cases: latestCases });
+      for (let i = startIndex; i < cases.length; i++) {
+        const tc = cases[i];
 
-      try {
-        const result = await executeAuditTestCase(sandbox.audit_id, tc.test_case_id);
+        // Skip cases that are already passed, failed, or evaluating if we are in resume mode
+        if (resume && (tc.status === 'passed' || tc.status === 'failed' || tc.status === 'evaluating')) {
+          continue;
+        }
+
+        setRunProgress({ current: i + 1, total: cases.length });
+
         latestCases = latestCases.map((c) =>
-          c.test_case_id === tc.test_case_id
-            ? { ...c, status: result.status, execution: result.execution }
-            : c,
+          c.test_case_id === tc.test_case_id ? { ...c, status: 'running' as const } : c,
         );
         onSandboxUpdate({ ...sandbox, test_cases: latestCases });
-      } catch (e) {
-        executionFailed = true;
-        const message = e instanceof Error ? e.message : 'Execution failed';
-        setRunError(message);
-        latestCases = latestCases.map((c) =>
-          c.test_case_id === tc.test_case_id ? { ...c, status: 'error' as const } : c,
-        );
-        onSandboxUpdate({ ...sandbox, test_cases: latestCases });
-        break;
+
+        try {
+          const result = await executeAuditTestCase(sandbox.audit_id, tc.test_case_id);
+          latestCases = latestCases.map((c) =>
+            c.test_case_id === tc.test_case_id
+              ? { ...c, status: result.status, execution: result.execution }
+              : c,
+          );
+          onSandboxUpdate({ ...sandbox, test_cases: latestCases });
+        } catch (e) {
+          executionFailed = true;
+          const message = e instanceof Error ? e.message : 'Execution failed';
+          setRunError(message);
+          latestCases = latestCases.map((c) =>
+            c.test_case_id === tc.test_case_id ? { ...c, status: 'error' as const } : c,
+          );
+          onSandboxUpdate({ ...sandbox, test_cases: latestCases });
+          break;
+        }
       }
     }
 
@@ -282,6 +325,7 @@ export default function AuditTestCasesPanel({ sandbox, onSandboxUpdate }: AuditT
     }
 
     setRunningAll(false);
+    setIsResuming(false);
     setRunProgress(null);
   }
 
@@ -299,15 +343,27 @@ export default function AuditTestCasesPanel({ sandbox, onSandboxUpdate }: AuditT
           </span>
           <button
             type="button"
-            onClick={() => void handleRunAll()}
+            onClick={() => void handleRun(false)}
             disabled={runningAll || sandbox.test_cases.length === 0}
             className="bg-primary-fixed text-on-primary font-bold font-code-snippet px-4 py-2 uppercase text-[11px] hover:bg-primary-container disabled:opacity-40"
           >
-            {runningAll && runProgress
+            {runningAll && runProgress && !isResuming
               ? isPollingEvaluations
                 ? 'Evaluating traces…'
                 : `Running ${runProgress.current}/${runProgress.total}…`
               : 'Run all'}
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleRun(true)}
+            disabled={runningAll || sandbox.test_cases.length === 0 || !canResume}
+            className="bg-surface-container-high border border-outline-variant text-primary-fixed font-bold font-code-snippet px-4 py-2 uppercase text-[11px] hover:border-primary-fixed disabled:opacity-40"
+          >
+            {runningAll && runProgress && isResuming
+              ? isPollingEvaluations
+                ? 'Evaluating traces…'
+                : `Running ${runProgress.current}/${runProgress.total}…`
+              : 'Resume'}
           </button>
         </div>
       </div>

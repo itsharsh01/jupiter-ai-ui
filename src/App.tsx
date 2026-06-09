@@ -7,6 +7,7 @@ import DashboardView from './components/DashboardView';
 import AuditSandboxView from './components/AuditSandboxView';
 import GovernanceReportPage from './components/GovernanceReportPage';
 import LoginView from './components/LoginView';
+import JupiterLoader from './components/JupiterLoader';
 import { useAuth } from './hooks/useAuth';
 import { useCustomerDiscovery } from './hooks/useCustomerDiscovery';
 import type { AppView } from './types/views';
@@ -74,9 +75,7 @@ export default function App() {
       <Starfield />
 
       {checking ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <p className="font-code-snippet text-primary-fixed animate-pulse">VERIFYING SESSION…</p>
-        </div>
+        <JupiterLoader fullscreen text="Verifying session…" />
       ) : !isAuthenticated ? (
         <LoginView
           onLogin={handleLogin}

@@ -32,3 +32,19 @@ export async function mapCustomerKnowledgeGraph(
   });
   return parseJson(res);
 }
+
+export interface KnowledgeGraphSummary {
+  customer_id: string;
+  graph: Record<string, unknown>;
+  instances: Record<string, unknown>[];
+  last_mapping_run?: Record<string, unknown> | null;
+}
+
+export async function fetchKnowledgeGraphSummary(
+  customerId: string,
+): Promise<KnowledgeGraphSummary> {
+  const res = await fetch(apiUrl(`/api/v1/customers/${customerId}/knowledge-graph`), {
+    headers: authHeaders(),
+  });
+  return parseJson(res);
+}

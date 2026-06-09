@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchAuditSandboxForSession } from '../api/audit';
 import AuditGovernanceReportView from './AuditGovernanceReportView';
+import JupiterLoader from './JupiterLoader';
 
 interface GovernanceReportPageProps {
   sessionId: string | null;
@@ -57,9 +58,7 @@ export default function GovernanceReportPage({ sessionId }: GovernanceReportPage
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center p-10">
-        <p className="font-code-snippet text-primary-fixed animate-pulse">LOADING GOVERNANCE REPORT…</p>
-      </div>
+      <JupiterLoader fullscreen text="Loading governance report…" />
     );
   }
 

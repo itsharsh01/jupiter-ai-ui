@@ -1,73 +1,48 @@
-# React + TypeScript + Vite
+# Jupiter AI UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript frontend for GovernAI. Talks to the [govern-ai-agent](../govern-ai-agent) API.
 
-Currently, two official plugins are available:
+## Development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```powershell
+cd jupiter-ai-ui
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open http://localhost:5173. In dev, Vite proxies `/api` to the local API on port 8800 (start the API from `govern-ai-agent` first).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Optional: set `VITE_API_URL` in `.env` to point at a remote API instead of the proxy. See [`.env.example`](.env.example).
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Deployment (Google App Engine)
+
+**Project:** `jupiter-ai-498513`  
+**UI URL:** https://ui-dot-jupiter-ai-498513.uc.r.appspot.com  
+**API URL:** https://jupiter-ai-498513.uc.r.appspot.com
+
+The production build reads `VITE_API_URL` from [`.env.production`](.env.production) (already set to the deployed API).
+
+### Deploy UI
+
+```powershell
+.\scripts\deploy.ps1
 ```
+
+Or:
+
+```powershell
+npm run deploy
+```
+
+Or manually:
+
+```powershell
+npm run build
+gcloud app deploy app.yaml --project=jupiter-ai-498513
+```
+
+`npm run build` must run before deploy — `dist/` is gitignored and uploaded as static files by App Engine service `ui`.
+
+### Verify
+
+Open https://ui-dot-jupiter-ai-498513.uc.r.appspot.com and log in with the demo credentials configured on the API (`GOVERN_AUTH_DEMO_EMAIL` / `GOVERN_AUTH_DEMO_PASSWORD`).

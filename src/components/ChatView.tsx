@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, type KeyboardEvent, type ChangeEvent, type DragEvent } from 'react';
 import { useDiscoveryChat } from '../hooks/useDiscoveryChat';
 import type { InteractionRequest, ToolRegistryEntry } from '../types/discovery';
+import JupiterLoader from './JupiterLoader';
 
 const EMPTY_TOOL: ToolRegistryEntry = {
   tool_name: '',
@@ -20,11 +21,7 @@ function now(): string {
 function QuestionLoading() {
   return (
     <div className="flex items-center gap-3 pl-3 py-1" aria-label="Generating question">
-      <div className="flex gap-1.5">
-        <span className="w-2 h-2 rounded-full bg-primary-fixed/90 animate-pulse" />
-        <span className="w-2 h-2 rounded-full bg-primary-fixed/70 animate-pulse [animation-delay:150ms]" />
-        <span className="w-2 h-2 rounded-full bg-primary-fixed/50 animate-pulse [animation-delay:300ms]" />
-      </div>
+      <JupiterLoader size={24} />
       <span className="text-[11px] text-outline font-code-snippet uppercase tracking-wider">
         Generating question…
       </span>

@@ -1,0 +1,33 @@
+# Jupiter AI UI — Google App Engine (static SPA)
+#
+# Build with production API URL, then deploy from jupiter-ai-ui/:
+#   npm run build
+#   gcloud app deploy app.yaml --project=jupiter-ai-498513
+#
+# Or: npm run deploy
+# Or: .\scripts\deploy.ps1
+#
+# UI URL:  https://ui-dot-jupiter-ai-498513.uc.r.appspot.com
+# API URL: https://jupiter-ai-498513.uc.r.appspot.com
+
+runtime: python312
+service: ui
+
+handlers:
+  - url: /assets
+    static_dir: dist/assets
+    secure: always
+    http_headers:
+      Cache-Control: public, max-age=31536000, immutable
+
+  - url: /(.*\.(ico|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot|json|txt|xml))$
+    static_files: dist/\1
+    upload: dist/(.*\.(ico|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot|json|txt|xml))$
+    secure: always
+
+  - url: /.*
+    static_files: dist/index.html
+    upload: dist/index.html
+    secure: always
+    http_headers:
+      Cache-Control: no-cache

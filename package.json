@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && gcloud app deploy app.yaml --project=jupiter-ai-498513"
   },
   "dependencies": {
     "react": "^19.2.6",

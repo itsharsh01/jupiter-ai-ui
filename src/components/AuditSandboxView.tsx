@@ -6,8 +6,9 @@ import {
   testAuditSandbox,
   type AuditSandbox,
 } from '../api/audit';
-import { mapCustomerKnowledgeGraph } from '../api/knowledgeGraph';
+import { mapCustomerKnowledgeGraph, fetchKnowledgeGraphSummary } from '../api/knowledgeGraph';
 import AuditTestCasesPanel from './AuditTestCasesPanel';
+import JupiterLoader from './JupiterLoader';
 
 function parseJsonField(raw: string): Record<string, unknown> | string | undefined {
   const trimmed = raw.trim();
@@ -45,6 +46,7 @@ export default function AuditSandboxView({ sessionId, onBackToChat }: AuditSandb
   const [mapping, setMapping] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [kgMapped, setKgMapped] = useState(false);
   const hasTestCases = (sandbox?.test_cases.length ?? 0) > 0;
 
   const loadExisting = useCallback(async () => {
@@ -63,6 +65,16 @@ export default function AuditSandboxView({ sessionId, onBackToChat }: AuditSandb
         setResponseBody(formatJsonField(existing.sample_response_body));
         if (existing.test_cases.length > 0) {
           setShowSandbox(false);
+        }
+        if (existing.customer_id) {
+          try {
+            const kgSummary = await fetchKnowledgeGraphSummary(existing.customer_id);
+            if (kgSummary.last_mapping_run || kgSummary.instances.length > 0) {
+              setKgMapped(true);
+            }
+          } catch (kgError) {
+            console.error('Failed to load knowledge graph summary:', kgError);
+          }
         }
       }
     } catch (e) {
@@ -159,6 +171,7 @@ export default function AuditSandboxView({ sessionId, onBackToChat }: AuditSandb
       setNotice(
         `Knowledge graph mapped: ${result.mapped_count} entities linked (${result.skipped_count} skipped).`,
       );
+      setKgMapped(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Knowledge graph mapping failed');
     } finally {
@@ -246,14 +259,11 @@ export default function AuditSandboxView({ sessionId, onBackToChat }: AuditSandb
         </div>
 
         {loading ? (
-          <p className="text-outline font-code-snippet text-[12px]">Loading sandbox…</p>
+          <JupiterLoader text="Loading sandbox…" />
         ) : starting ? (
           <div className="glass-panel p-12 flex flex-col items-center justify-center gap-4 text-center">
-            <span className="material-symbols-outlined text-primary-fixed text-[48px] animate-pulse">
-              progress_activity
-            </span>
-            <p className="font-label-caps text-label-caps text-primary-fixed">Generating test cases</p>
-            <p className="text-[12px] text-on-surface-variant font-code-snippet max-w-md">
+            <JupiterLoader size={120} text="Generating test cases" />
+            <p className="text-[12px] text-on-surface-variant font-code-snippet max-w-md mt-2">
               Running 5 strategies (governance, AI risk, tool abuse, data leakage, control verification)…
             </p>
           </div>
@@ -266,10 +276,10 @@ export default function AuditSandboxView({ sessionId, onBackToChat }: AuditSandb
                   <button
                     type="button"
                     onClick={() => void handleMapKnowledgeGraph()}
-                    disabled={mapping || starting}
+                    disabled={mapping || starting || kgMapped}
                     className="bg-primary-fixed text-on-primary font-code-snippet text-[11px] px-4 py-2 uppercase disabled:opacity-40"
                   >
-                    {mapping ? 'Mapping…' : 'Map knowledge graph'}
+                    {mapping ? 'Mapping…' : kgMapped ? 'Knowledge graph mapped' : 'Map knowledge graph'}
                   </button>
                 )}
               </div>
@@ -394,14 +404,22 @@ export default function AuditSandboxView({ sessionId, onBackToChat }: AuditSandb
                     {testing ? 'Testing…' : 'Test sandbox'}
                   </button>
                   {sandbox?.customer_id && (
-                    <button
-                      type="button"
-                      onClick={() => void handleMapKnowledgeGraph()}
-                      disabled={saving || starting || testing || mapping}
-                      className="bg-surface-container-high border border-outline-variant text-primary-fixed font-bold font-code-snippet px-6 py-3 uppercase hover:border-primary-fixed disabled:opacity-40"
-                    >
-                      {mapping ? 'Mapping…' : 'Map knowledge graph'}
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => void handleMapKnowledgeGraph()}
+                        disabled={saving || starting || testing || mapping || kgMapped}
+                        className="bg-surface-container-high border border-outline-variant text-primary-fixed font-bold font-code-snippet px-6 py-3 uppercase hover:border-primary-fixed disabled:opacity-40"
+                      >
+                        {mapping ? 'Mapping…' : kgMapped ? 'Mapped' : 'Map knowledge graph'}
+                      </button>
+                      {kgMapped && (
+                        <span className="flex items-center gap-1.5 text-xs text-primary-fixed font-code-snippet">
+                          <span className="material-symbols-outlined text-[16px] text-primary-fixed">check_circle</span>
+                          STATUS: MAPPED
+                        </span>
+                      )}
+                    </div>
                   )}
                   <button
                     type="button"
