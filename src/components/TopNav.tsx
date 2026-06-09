@@ -1,3 +1,4 @@
+import logo from '../assets/screen.png';
 import type { AuthUser } from '../api/auth';
 
 const iconLinks = ['terminal', 'settings', 'help_outline'];
@@ -10,8 +11,9 @@ interface TopNavProps {
 export default function TopNav({ user, onLogout }: TopNavProps) {
   return (
     <header className="fixed top-0 w-full z-50 flex justify-between items-center px-10 py-1 bg-surface/30 backdrop-blur-xl border-b border-outline-variant">
-      <div className="font-headline-md text-headline-md text-primary-fixed-dim tracking-tighter">
-        COMPLIANCE_SYS_v4.0.2
+      <div className="flex items-center gap-2 font-headline-md text-headline-md text-primary-fixed-dim tracking-tighter uppercase">
+        <img src={logo} alt="Jupiter UI Logo" className="w-6 h-6 object-cover rounded-sm border border-outline-variant/60" />
+        jupiter ai
       </div>
 
       <div className="flex items-center gap-3">
